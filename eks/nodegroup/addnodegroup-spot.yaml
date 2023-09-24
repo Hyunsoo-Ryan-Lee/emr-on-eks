@@ -1,0 +1,19 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: emr-eks-dev
+  region: ap-northeast-2
+
+managedNodeGroups:
+- name: spot-ng
+  labels: { role: workers }
+  minSize: 1
+  desiredCapacity: 3
+  maxSize: 4
+  privateNetworking: true
+  instanceType: t3.large
+  spot: true
+  ssh:
+    enableSsm: true
+  availabilityZones: ["ap-northeast-2a", "ap-northeast-2b", "ap-northeast-2c"]
