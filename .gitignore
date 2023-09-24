@@ -162,3 +162,4 @@ cython_debug/
 /home/ubuntu/workspace/emr-on-eks/eks/aws/
 /home/ubuntu/workspace/emr-on-eks/eks/kubectl
 /home/ubuntu/workspace/emr-on-eks/eks/kubectl.sha256
+/home/ubuntu/workspace/emr-on-eks/airflow/logs/
