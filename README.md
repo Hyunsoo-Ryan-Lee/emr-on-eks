@@ -7,3 +7,5 @@
 5. 로깅 설정 및 Spark Job 실행 - https://velog.io/@newnew_daddy/EMR-on-EKS-05
 6. Cluster Auto Scaler 설정 및 다이나믹 리소스 할당 확인
 7. Airflow 설치 및 airflow를 통한 Job 실행 확인
+
+

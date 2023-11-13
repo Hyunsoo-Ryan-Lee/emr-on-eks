@@ -44,28 +44,28 @@ eksctl create cluster \
 kc create ns emr
 
 eksctl create iamidentitymapping \
-    --cluster emr-eks-dev \
+    --cluster eks-dev-temp \
     --namespace emr \
-    --service-name "emr-containers" \
+    --service-name "emr-containers"
 
 
 
 eksctl create iamidentitymapping \
-    --cluster emr-eks-dev \
+    --cluster eks-dev-temp \
     --arn "arn:aws:iam::447600660135:role/AWSServiceRoleForAmazonEMRContainers" \
-    --username emr-containers \
+    --username emr-containers
 
 
 aws eks describe-cluster \
-    --name emr-eks-dev \
+    --name eks-dev-temp \
     --query "cluster.identity.oidc.issuer" \
-    --output text \
+    --output text
 
 
 # Enabling IAM roles for service accounts on your cluster
 eksctl utils associate-iam-oidc-provider \
-    --cluster emr-eks-dev \
-    --approve \
+    --cluster eks-dev-temp \
+    --approve
 
 
 cat <<EoF > ~/AWS-Training/EKS/policy/emr-trust-policy.json
@@ -85,7 +85,7 @@ EoF
 
 aws iam create-role \
     --role-name EMRContainers-JobExecutionRole \
-    --assume-role-policy-document file://~/workspace/eks/policy/emr-trust-policy.json \
+    --assume-role-policy-document file://~/workspace/emr-on-eks/eks/policy/emr-trust-policy.json
 
 
 
@@ -122,35 +122,35 @@ EoF
 aws iam put-role-policy \
     --role-name EMRContainers-JobExecutionRole \
     --policy-name EMR-Containers-Job-Execution \
-    --policy-document file://~/AWS-Training/EKS/policy/EMRContainers-JobExecutionRole.json \
+    --policy-document file://~/workspace/emr-on-eks/eks/policy/EMRContainers-JobExecutionRole.json
 
 
 aws emr-containers update-role-trust-policy \
-    --cluster-name emr-eks-dev \
+    --cluster-name eks-dev-temp \
     --namespace emr \
-    --role-name EMRContainers-JobExecutionRole \
+    --role-name EMRContainers-JobExecutionRole
 
 
 aws emr-containers create-virtual-cluster \
 --name emr-cluster \
 --container-provider '{
-    "id": "emr-eks-dev",
+    "id": "eks-dev-temp",
     "type": "EKS",
     "info": {
         "eksInfo": {
             "namespace": "emr"
         }
     }
-}' \
+}'
 
 
 aws eks \
     --region ap-northeast-2 update-kubeconfig \
-    --name emr-eks-dev \
+    --name eks-dev-temp \
 
 
 eksctl create nodegroup \
-    --config-file=./nodegroup/addnodegroup.yaml \
+    --config-file=./nodegroup/addnodegroup-spot.yaml \
 
 
 aws emr-containers describe-virtual-cluster \
@@ -193,25 +193,25 @@ aws emr-containers start-job-run \
 
 
 aws eks describe-nodegroup \
-    --cluster-name emr-eks-dev \
-    --nodegroup-name test-ng \
+    --cluster-name eks-dev-temp \
+    --nodegroup-name spot-ng \
     --query "nodegroup.resources.autoScalingGroups" \
     --output text \
 
 
 aws autoscaling \
     update-auto-scaling-group \
-    --auto-scaling-group-name eks-test-ng-f6c551b1-223c-e0b4-5ff7-74bd9f578d15 \
+    --auto-scaling-group-name eks-spot-ng-30c5e20f-2e2e-289f-0911-96f59e65c6fb \
     --min-size 1 \
-    --desired-capacity 4 \
-    --max-size 6 \
+    --desired-capacity 2 \
+    --max-size 6
 
 
 aws autoscaling \
     describe-auto-scaling-groups \
-    --auto-scaling-group-names eks-test-ng-f6c551b1-223c-e0b4-5ff7-74bd9f578d15 \
-    --query "AutoScalingGroups[? Tags[? (Key=='eks:cluster-name') && Value=='${EKS_NAME}']].[AutoScalingGroupName, MinSize, MaxSize,DesiredCapacity]" \
-    --output table \
+    --auto-scaling-group-names eks-spot-ng-30c5e20f-2e2e-289f-0911-96f59e65c6fb \
+    --query "AutoScalingGroups[? Tags[? (Key=='eks:cluster-name') && Value=='eks-dev-temp']].[AutoScalingGroupName, MinSize, MaxSize,DesiredCapacity]" \
+    --output table
 
 
 # node auto scaling 관련 policy 생성
@@ -223,7 +223,7 @@ aws iam create-policy   \
 eksctl create iamserviceaccount \
     --name cluster-autoscaler \
     --namespace kube-system \
-    --cluster emr-eks-dev \
+    --cluster eks-dev-temp \
     --attach-policy-arn "arn:aws:iam::447600660135:policy/k8s-asg-policy" \
     --approve \
     --override-existing-serviceaccounts \
@@ -313,14 +313,6 @@ aws emr-containers start-job-run \
 
 
 
-# nodegroup delete
-eksctl delete nodegroup \
-    --cluster emr-eks-dev \
-    --name test-ng \
-    --region ap-northeast-2 \
-
-
-
 >>To reduce costs, you can schedule Spark driver tasks to run on On-Demand instances while scheduling Spark executor tasks to run on Spot instances.<<
 
 
@@ -365,7 +357,7 @@ aws emr-containers start-job-run \
 
 ==
 eksctl create nodegroup \
-  --cluster emr-eks-dev \
+  --cluster eks-dev-temp \
   --name al-nodes \
   --node-type m5.xlarge \
   --nodes 2 \
@@ -377,7 +369,7 @@ eksctl create nodegroup \
 
 
 eksctl create nodegroup \
---cluster=emr-eks-dev \
+--cluster=eks-dev-temp \
 --region=ap-northeast-2 \
 --name=eks-worker \
 --node-type=t3.medium \
@@ -393,3 +385,12 @@ eksctl create nodegroup \
 --appmesh-access \
 --alb-ingress-access \
 --node-private-networking \                   
+
+
+# nodegroup delete
+eksctl delete nodegroup \
+    --cluster eks-dev-temp \
+    --name spot-ng \
+    --region ap-northeast-2
+    
+aws emr-containers delete-virtual-cluster --id bmodad78h40r1y286cia7uu7t

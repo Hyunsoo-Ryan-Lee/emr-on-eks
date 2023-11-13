@@ -1,0 +1,32 @@
+{
+    "name": "sample-with-var",
+    "virtualClusterId": "bmodad78h40r1y286cia7uu7t",
+    "executionRoleArn": "arn:aws:iam::447600660135:role/EMRContainers-JobExecutionRole",
+    "releaseLabel": "emr-6.2.0-latest",
+    "jobDriver": {
+        "sparkSubmitJobDriver": {
+            "entryPoint": "s3://developer-personal-storage/hyunsoo/emr_on_eks/scripts/job-without-var.py",
+            "sparkSubmitParameters": "--conf spark.executor.instances=1 --conf spark.executor.memory=2G --conf spark.executor.cores=1 --conf spark.driver.cores=1"
+        }
+    },
+    "configurationOverrides": {
+        "applicationConfiguration": [
+            {
+                "classification": "spark-defaults",
+                "properties": {
+                  "spark.dynamicAllocation.enabled": "false",
+                  "spark.kubernetes.executor.deleteOnTermination": "true"
+                }
+            }
+        ],
+        "monitoringConfiguration": {
+            "cloudWatchMonitoringConfiguration": {
+                "logGroupName": "/emr-on-eks/emr-eks-dev-logs",
+                "logStreamNamePrefix": "sample"
+            },
+            "s3MonitoringConfiguration": {
+                "logUri": "s3://developer-personal-storage/hyunsoo/emr_on_eks/log/job-without-var/"
+            }
+        }
+    }
+}

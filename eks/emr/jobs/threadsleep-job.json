@@ -1,16 +1,12 @@
 {
-    "name": "sample-with-var",
-    "virtualClusterId": "vnj4ytlad0yl5npnxi5q51x50",
+    "name": "threadsleep-job",
+    "virtualClusterId": "bmodad78h40r1y286cia7uu7t",
     "executionRoleArn": "arn:aws:iam::447600660135:role/EMRContainers-JobExecutionRole",
     "releaseLabel": "emr-6.2.0-latest",
     "jobDriver": {
         "sparkSubmitJobDriver": {
-            "entryPoint": "s3://developer-personal-storage/hyunsoo/emr_on_eks/sample-2.py",
-            "entryPointArguments": [
-                "--read_location", "s3://developer-personal-storage/hyunsoo/emr_on_eks/heart.parquet",
-                "--write_location", "s3://developer-personal-storage/hyunsoo/emr_on_eks/result/"
-            ],
-            "sparkSubmitParameters": "--conf spark.executor.instances=1 --conf spark.executor.memory=2G --conf spark.executor.cores=1 --conf spark.driver.cores=1"
+            "entryPoint": "s3://developer-personal-storage/hyunsoo/emr_on_eks/scripts/threadsleep.py",
+            "sparkSubmitParameters": "--conf spark.executor.instances=15 --conf spark.executor.memory=1G --conf spark.executor.cores=1 --conf spark.driver.cores=1"
         }
     },
     "configurationOverrides": {
@@ -29,7 +25,7 @@
                 "logStreamNamePrefix": "sample"
             },
             "s3MonitoringConfiguration": {
-                "logUri": "s3://developer-personal-storage/hyunsoo/emr_on_eks/log/"
+                "logUri": "s3://developer-personal-storage/hyunsoo/emr_on_eks/log/threadsleep/"
             }
         }
     }
