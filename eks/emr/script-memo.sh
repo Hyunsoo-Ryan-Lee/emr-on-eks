@@ -44,27 +44,27 @@ eksctl create cluster \
 kc create ns emr
 
 eksctl create iamidentitymapping \
-    --cluster eks-dev-temp \
+    --cluster eks-spark-temp \
     --namespace emr \
     --service-name "emr-containers"
 
 
 
 eksctl create iamidentitymapping \
-    --cluster eks-dev-temp \
+    --cluster eks-spark-temp \
     --arn "arn:aws:iam::447600660135:role/AWSServiceRoleForAmazonEMRContainers" \
     --username emr-containers
 
 
 aws eks describe-cluster \
-    --name eks-dev-temp \
+    --name eks-spark-temp \
     --query "cluster.identity.oidc.issuer" \
     --output text
 
 
 # Enabling IAM roles for service accounts on your cluster
 eksctl utils associate-iam-oidc-provider \
-    --cluster eks-dev-temp \
+    --cluster eks-spark-temp \
     --approve
 
 
@@ -126,7 +126,7 @@ aws iam put-role-policy \
 
 
 aws emr-containers update-role-trust-policy \
-    --cluster-name eks-dev-temp \
+    --cluster-name eks-spark-temp \
     --namespace emr \
     --role-name EMRContainers-JobExecutionRole
 
@@ -134,7 +134,7 @@ aws emr-containers update-role-trust-policy \
 aws emr-containers create-virtual-cluster \
 --name emr-cluster \
 --container-provider '{
-    "id": "eks-dev-temp",
+    "id": "eks-spark-temp",
     "type": "EKS",
     "info": {
         "eksInfo": {
@@ -146,7 +146,7 @@ aws emr-containers create-virtual-cluster \
 
 aws eks \
     --region ap-northeast-2 update-kubeconfig \
-    --name eks-dev-temp \
+    --name eks-spark-temp \
 
 
 eksctl create nodegroup \
@@ -193,7 +193,7 @@ aws emr-containers start-job-run \
 
 
 aws eks describe-nodegroup \
-    --cluster-name eks-dev-temp \
+    --cluster-name eks-spark-temp \
     --nodegroup-name spot-ng \
     --query "nodegroup.resources.autoScalingGroups" \
     --output text \
@@ -210,7 +210,7 @@ aws autoscaling \
 aws autoscaling \
     describe-auto-scaling-groups \
     --auto-scaling-group-names eks-spot-ng-30c5e20f-2e2e-289f-0911-96f59e65c6fb \
-    --query "AutoScalingGroups[? Tags[? (Key=='eks:cluster-name') && Value=='eks-dev-temp']].[AutoScalingGroupName, MinSize, MaxSize,DesiredCapacity]" \
+    --query "AutoScalingGroups[? Tags[? (Key=='eks:cluster-name') && Value=='eks-spark-temp']].[AutoScalingGroupName, MinSize, MaxSize,DesiredCapacity]" \
     --output table
 
 
@@ -223,7 +223,7 @@ aws iam create-policy   \
 eksctl create iamserviceaccount \
     --name cluster-autoscaler \
     --namespace kube-system \
-    --cluster eks-dev-temp \
+    --cluster eks-spark-temp \
     --attach-policy-arn "arn:aws:iam::447600660135:policy/k8s-asg-policy" \
     --approve \
     --override-existing-serviceaccounts \
@@ -357,7 +357,7 @@ aws emr-containers start-job-run \
 
 ==
 eksctl create nodegroup \
-  --cluster eks-dev-temp \
+  --cluster eks-spark-temp \
   --name al-nodes \
   --node-type m5.xlarge \
   --nodes 2 \
@@ -369,7 +369,7 @@ eksctl create nodegroup \
 
 
 eksctl create nodegroup \
---cluster=eks-dev-temp \
+--cluster=eks-spark-temp \
 --region=ap-northeast-2 \
 --name=eks-worker \
 --node-type=t3.medium \
@@ -389,8 +389,10 @@ eksctl create nodegroup \
 
 # nodegroup delete
 eksctl delete nodegroup \
-    --cluster eks-dev-temp \
+    --cluster eks-spark-temp \
     --name spot-ng \
     --region ap-northeast-2
     
 aws emr-containers delete-virtual-cluster --id bmodad78h40r1y286cia7uu7t
+
+eksctl delete cluster eks-spark-temp

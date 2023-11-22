@@ -2,11 +2,11 @@ apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 
 metadata:
-  name: eks-dev-temp
+  name: eks-spark-temp
   region: ap-northeast-2
   version: "1.24"
   tags:
-    karpenter.sh/discovery: eks-dev-temp
+    karpenter.sh/discovery: eks-spark-temp
 
 vpc:
   subnets:
@@ -50,13 +50,13 @@ iam:
         namespace: kube-system
       wellKnownPolicies:
         externalDNS: true
-    # - metadata:
-    #     name: karpenter
-    #     namespace: karpenter
-    #   roleName: eks-dev-temp-karpenter
-    #   attachPolicyARNs:
-    #   - arn:aws:iam::447600660135:policy/KarpenterControllerPolicy-eks-dev-temp
-    #   roleOnly: true
+#     - metadata:
+#         name: karpenter
+#         namespace: karpenter
+#       roleName: KarpenterControllerRole-eks-dev-temp
+#       attachPolicyARNs:
+#       - arn:aws:iam::447600660135:policy/KarpenterControllerPolicy-eks-dev-temp
+#       roleOnly: true
 
 # iamIdentityMappings:
 # - arn: "arn:aws:iam::447600660135:role/KarpenterNodeRole-eks-dev-temp"
@@ -81,7 +81,7 @@ managedNodeGroups:
     instanceName: eks-worker
     instanceType: m5.large
     minSize: 1
-    desiredCapacity: 2
+    desiredCapacity: 1
     maxSize: 3
     privateNetworking: true
     availabilityZones: ["ap-northeast-2a", "ap-northeast-2b", "ap-northeast-2c"]
